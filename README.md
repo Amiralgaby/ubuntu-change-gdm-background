@@ -1,32 +1,28 @@
 # ubuntu-change-gdm-background 
-This is a script which automates the process of setting an image in the Gnome Display Manager 
-background of Ubuntu in order to change its famous aubergine theme.
+Il s'agit d'un script qui automatise le processus de mise en place d'une image dans le Gnome Display Manager 
+d'Ubuntu afin de modifier son célèbre thème de l'aubergine (vraiment pas ouf).
 
 ## Disclaimer
-This script was tested in Ubuntu 18.04, 18.10, 19.04 and 19,10 only and I'm not 
-responsible for any problem that it may cause.
-THIS SCRIPT WON'T WORK WITH THE NEW UBUNTU 20.04. If you want to change Ubuntu
-20.04 gdm backgroud image, you have to use another script avalible at 
+Ce script a été testé en Ubuntu 18.04, 18.10, 19.04 et 19,10 seulement et je ne suis pas 
+responsable de tout problème qu'il pourrait causer.
+CE SCRIPT NE FONCTIONNERA PAS AVEC LA NOUVELLE DISTRIBUTION UBUNTU 20.04. Si vous voulez changer Ubuntu
+20.04 gdm backgroud image, vous devez utiliser un autre script disponible à 
 https://github.com/thiggy01/ubuntu-20.04-change-gdm-background.
 
 ## Installation and Usage 
 
-First of all, You need to have yad package installed to be able to see the 
-graphical user interface. On Ubuntu, you can install it with `sudo apt install yad`.  
+Tout d'abord, vous devez avoir installé le paquet yad pour pouvoir voir l'interface utilisateur graphique. 
+Sur Ubuntu, vous pouvez l'installer avec `sudo apt install yad`.  
 
-Download the script with the following command:
+I - Copier-coller dans votre éditeur de texte préféré.
 
-    curl -L -O github.com/thiggy01/ubuntu-change-gdm-background/raw/master/ubuntu-change-gdm-background
+II - Donnez-lui la possibiliter d'être exécuté  : `chmod +x ubuntu-change-gdm-background`. 
 
-Set it as executable with `chmod +x ubuntu-change-gdm-background` command and 
-run it with root privileges such as `sudo ./ubuntu-change-gdm-background`.
+III - Lancez-le en tant qu'administrateur avec `sudo ./ubuntu-change-gdm-background`.
 
-If you see a message `login image sucessfully changed`, then, when you restart gdm 
-servive or reboot your computer, your login background should be covered with the 
-image you selected.
+## Retrouver l'ancien theme 
 
-You can restore your original gdm theme any time with `sudo ./ubuntu-change-gdm-background --restore`.
+Vous pouvez restaurer le thème original via la commande `sudo ./ubuntu-change-gdm-background --restore`.
 
-This script will save the pictures in /usr/share/gdm/saved-pictures folder so
-you can move your original image file without losing the gdm login image
-setting.
+Ce script sauvegarde les images dans le dossier /usr/share/gdm/saved-pictures donc
+vous pouvez déplacer l'image d'origine sans perdre les paramètres de l'arrière-plan du gestionnaire de session.
