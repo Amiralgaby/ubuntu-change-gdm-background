@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
 # Autor: Thiago Silva
 # Contact: thiagos.dasilva@gmail.com
-# URL: https://github.com/thiggy01/ubuntu-change-gdm-background
+# URL : https://github.com/thiggy01/ubuntu-change-gdm-background
 # ============================================================= #
 
 # Add the restore option in order to restore gdm original theme.
 if [ "$1" = "--restore" ]; then
-  cat /usr/share/gnome-shell/theme/gdm3.css~ > /usr/share/gnome-shell/theme/\
-gdm3.css
-  echo "Login background sucessfully restored to its original theme."
-  echo "Restart Gnome to apply change."
+  cat /usr/share/gnome-shell/theme/gdm3.css~ > /usr/share/gnome-shell/theme/gdm3.css
+  echo "L'arrière-plan de la connexion a été restauré avec succès sur son thème d'origine."
+  echo "Redémarrez GNOME afin d'appliquer les changements"
   exit 0
 fi
 
 # Get the image selected by user from yad based GUI.
-usrInput=`yad --file --center --width=900 --height=450 --title "Select An \
-Image File" --add-preview --file-filter "Image Files | *.jpg *.png" 2> /dev/null`
+usrInput=`yad --file --center --width=900 --height=450 --title "Séléctionnez une image" --add-preview --file-filter "Image Files | *.jpg *.png" 2> /dev/null`
 
 # Verify if yad is installed
 if [ "$?" -eq 127 ]; then
-     echo "yad package is not installed."
-     echo "It is needed for graphical interface."
-     echo "Exiting."
+     echo "Le paquet yad n'est pas installé"
+     echo "Il est utile pour des interfaces graphiques qui vous simplifirons la vie"
+     echo "Utiliser la commande : sudo apt install yad"
      exit 1
 fi
 
@@ -56,22 +54,21 @@ EOF
 
     # Test if login screen background was changed.
     if grep -wq "$bgImgPath" "$cssPath"; then
-	yad --title "Sucessful Message" --center \
+	yad --title "Message d'information" --center \
 	    --width=300 --height=100 --borders=20 \
-	    --text="Login image sucessfully changed." \
+	    --text="L'image de l'écran de choix de session à été changée avec succès" \
 	    --button=gtk-ok
-	yad --title "Restart Question" --center \
+	yad --title "Redémarrer le gestionnaire de session" --center \
 	    --width=300 --height=100 --borders=20 \
-	    --text="Restart gdm to apply change?" \
+	    --text="Souhaitez-vous redémarrer gdm afin que les modifications soit prise en compte ?" \
 	    --button=gtk-yes:1 --button=gtk-no:2
-	ret=$?
-	if [ $ret == 1 ]; then
+	
+	if [ $? == 1 ]; then
 	    service gdm restart
-	elif [ $ret == 2 ]; then
-	    yad --title "Warning Message" --center \
-		--width=300 --height=100 --borders=20 \
-		--text="Change won't be applied until restart." \
-		--button=gtk-ok
+	elif [ $? == 2 ]; then
+		# On ne souhaite pas embêter l'utilisateur pour son choix donc on n'utilise plus yad.
+		echo "\[033;1m Les changements ne seront pas appliqués jusqu'au redémarrage de gdm"
+		echo "Via la commande : service gdm restart"
 	fi
     fi
 fi
