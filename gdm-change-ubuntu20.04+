@@ -9,6 +9,7 @@ usage () {
 }
 
 [ "$1" == "-h" ] && usage && exit 0
+[ -z "$1" ] && usage && exit 1 
 
 # Check if script is run by root.
 if [ "$(id -u)" -ne 0 ] ; then
