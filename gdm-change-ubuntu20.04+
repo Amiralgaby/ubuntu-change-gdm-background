@@ -4,8 +4,8 @@
 # URL: https://github.com/thiggy01/ubuntu-20.04-change-gdm-background
 # =================================================================== #
 usage () {
-	echo "Usage: sudo "$0" /chemin/du/fichier.[jpg|png]"
-    	echo "Usage: sudo "$0" \#votreCouleurEnHexadécimal"
+	echo "Usage: sudo $0 /chemin/du/fichier.[jpg|png]"
+    	echo "Usage: sudo $0 \#votreCouleurEnHexadécimal"
 }
 
 [ "$1" == "-h" ] && usage && exit 0
@@ -28,7 +28,7 @@ fi
 # Check if glib 2.0 development libraries are installed.
 if [ ! -x "$(command -v glib-compile-resources)" ]; then
     echo 'Des bibliothèques glib 2.0 supplémentaires doivent être installées.'
-    read -p 'Tapez o ou O pour continuer. Toute autre touche pour sortir : ' -n 1
+    read -rp 'Tapez o ou O pour continuer. Toute autre touche pour sortir : ' -n 1
     if [[ "$REPLY" =~ ^[oO]$ ]]; then
 	apt install libglib2.0-dev-bin
     else
@@ -51,11 +51,11 @@ fi
 
 # Restore backup function.
 restore () {
-mv "$gdm3Resource~" "$gdm3Resource"
-if [ "$?" -eq 0 ]; then
+
+if mv "$gdm3Resource~" "$gdm3Resource"; then
     chmod 644 "$gdm3Resource"
     echo 'Le fond GDM a été restauré avec succès.'
-    read -p 'Voulez-vous relancer le GDM pour appliquer le changement ? (o/n) :' -n 1
+    read -rp 'Voulez-vous relancer le GDM pour appliquer le changement ? (o/n) :' -n 1
 	echo
 	if [[ "$REPLY" =~ ^[oO]$ ]]; then
 	    service gdm restart
@@ -75,7 +75,7 @@ workDir="/tmp/gdm3-theme"
 
 # Create directories from resource list.
 CreateDirs() {
-for resource in `gresource list "$gdm3Resource~"`; do
+for resource in $(gresource list "$gdm3Resource~"); do
     resource="${resource#\/org\/gnome\/shell\/}"
     if [ ! -d "$workDir"/"${resource%/*}" ]; then
       mkdir -p "$workDir"/"${resource%/*}"
@@ -85,7 +85,7 @@ done
 
 # Extract resources from binary file.
 ExtractRes() {
-for resource in `gresource list "$gdm3Resource~"`; do
+for resource in $(gresource list "$gdm3Resource~"); do
     gresource extract "$gdm3Resource~" "$resource" > \
     "$workDir"/"${resource#\/org\/gnome\/shell\/}"
 done
@@ -104,7 +104,7 @@ if [ "$?" -eq 0 ]; then
 # Solve a permission change issue (thanks to @huepf from github).
     chmod 644 "$gdm3Resource"
     echo "L'arrière-plan du GDM a changé avec succès."
-    read -p 'Voulez-vous relancer le GDM pour appliquer le changement ? (o/n) :' -n 1
+    read -rp 'Voulez-vous relancer le GDM pour appliquer le changement ? (o/n) :' -n 1
     echo
     # If change was successful apply ask for gdm restart.
     if [[ "$REPLY" =~ ^[oO]$ ]]; then
@@ -136,7 +136,7 @@ if [[ $(file --mime-type -b "$1") == image/*g ]]; then
 
     # Call procedures to create directories and extract resources to them.
     CreateDirs
- echo test
+
     ExtractRes
 
     # Copy selected image to the resources directory.
@@ -153,7 +153,7 @@ if [[ $(file --mime-type -b "$1") == image/*g ]]; then
     echo '<?xml version="1.0" encoding="UTF-8"?>
 <gresources>
     <gresource prefix="/org/gnome/shell/theme">' > "$workDir"/theme/"$gdm3xml"
-    for file in `gresource list "$gdm3Resource~"`; do
+    for file in $(gresource list "$gdm3Resource~"); do
 	echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
 	>> "$workDir"/theme/"$gdm3xml"
     done
@@ -189,7 +189,7 @@ elif [[ "$1" =~ ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
     echo '<?xml version="1.0" encoding="UTF-8"?>
 <gresources>
     <gresource prefix="/org/gnome/shell/theme">' > "$workDir"/theme/"$gdm3xml"
-    for file in `gresource list "$gdm3Resource~"`; do
+    for file in $(gresource list "$gdm3Resource~"); do
 	echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
 	>> "$workDir"/theme/"$gdm3xml"
     done
