@@ -30,9 +30,12 @@ II - Donnez-lui la possibiliter d'être exécuté  : `chmod +x gdm-change-ubuntu
 
 III - Lancez-le en tant qu'administrateur avec `sudo ./gdm-change-ubuntu18.04+`.
 
-### Retrouver l'ancien theme 
+### Retrouver l'ancien thème 
 
-Vous pouvez restaurer le thème original via la commande `sudo ./gdm-change-ubuntu18.04+ --restore`.
+Vous pouvez restaurer le thème original via l'option `--restore` sur tout les scripts.
 
 Ce script sauvegarde les images dans le dossier /usr/share/gdm/saved-pictures donc
 vous pouvez déplacer l'image d'origine sans perdre les paramètres de l'arrière-plan du gestionnaire de session.
+
+### Bug : le gestionnaire n'ouvre pas la session même si le mot de passe est correct
+Des posts sur des forums explique le même problème, pour résoudre le bug je vous invite à les regarder.

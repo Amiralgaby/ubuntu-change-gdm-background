@@ -124,12 +124,10 @@ else
     restore
     echo "Aucun changement n'a été appliqué"
 fi
-}
 
-CleanUp() {
-    # Remove temporary directories and files.
-    rm -r "$workDir"
-    exit 0
+# Remove temporary directories and files.
+rm -r "$workDir"
+exit 0
 }
 
 # Permet de demander à l'utilisateur de sélectionner une image s'il n'en a pas défini une en paramètre
@@ -185,9 +183,6 @@ if [[ $(file --mime-type -b "$imageOuCode") == image/*g ]]; then
     # Compile and move gresource.
     CompileMoveRes
 
-    # Remove temporary files and exit.
-    CleanUp
-
 elif [[ "$imageOuCode" =~ ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
 
     #Store selected background color.
@@ -216,9 +211,6 @@ elif [[ "$imageOuCode" =~ ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
 
     # Compile and move gresoure.
     CompileMoveRes
-
-    # Remove temporary files and exit.
-    CleanUp
 
 else
 
