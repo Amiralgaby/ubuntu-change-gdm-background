@@ -8,12 +8,17 @@
 # =================================================================== #
 
 usage () {
-echo "Usage: sudo $0 /chemin/du/fichier.[jpg|png]"
-echo "Usage: sudo $0 \#votreCouleurEnHexadécimal"
+cat << EOF
+Utilisation :
+  sudo $0 [OPTION]
+
+OPTION :
+  /chemin/du/fichier.[jpg|png]			-  Indiquer le chemin vers un fichier
+  \#votreCouleurEnHexadécimal			-  Indiquer un code en hexadécimal comme #44ff22 (couleur unie)
+EOF
 }
 
 [ "$1" == "-h" ] && usage && exit 0
-[ -z "$1" ] && usage && exit 1 
 
 # Check if script is run by root.
 if [ "$(id -u)" -ne 0 ] ; then
@@ -99,12 +104,8 @@ done
 CompileMoveRes() {
 glib-compile-resources --sourcedir=$workDir/theme/ $workDir/theme/"$gdm3xml"
 # Move the generated binary file to the gnome-shell folder.
-mv $workDir/theme/gnome-shell-theme.gresource $gdm3Resource
-}
 
-# Check if gresource was sucessfuly moved to its default folder.
-Check() {
-if [ "$?" -eq 0 ]; then
+if mv $workDir/theme/gnome-shell-theme.gresource $gdm3Resource; then
 # Solve a permission change issue (thanks to @huepf from github).
     chmod 644 "$gdm3Resource"
     echo "L'arrière-plan du GDM a changé avec succès."
@@ -131,11 +132,27 @@ CleanUp() {
     exit 0
 }
 
+# Permet de demander à l'utilisateur de sélectionner une image s'il n'en a pas défini une en paramètre
+# Si c'est un code aucune demande ne sera faite
+imageOuCode="$1"
+if [ -z "$imageOuCode" ]
+then
+	outilDialogue=""
+	if command -v yad;then outilDialogue="yad";
+	elif command -v zenity;then outilDialogue="zenity";fi
+	if [[ "$outilDialogue" != "" ]]
+	then
+		imageOuCode=`$outilDialogue --file-selection`
+	fi
+fi
+
+echo "Le chemin de l'image ou le code retenu est $imageOuCode"
+
 # Test if argument is an image file.
-if [[ $(file --mime-type -b "$1") == image/*g ]]; then
+if [[ $(file --mime-type -b "$imageOuCode") == image/*g ]]; then
 
     # Define image variables.
-    gdmBgImg=$(realpath "$1")
+    gdmBgImg=$(realpath "$imageOuCode")
     imgFile=$(basename "$gdmBgImg")
 
     # Call procedures to create directories and extract resources to them.
@@ -168,16 +185,13 @@ if [[ $(file --mime-type -b "$1") == image/*g ]]; then
     # Compile and move gresource.
     CompileMoveRes
 
-    # Check if everything was successful.
-    Check
-
     # Remove temporary files and exit.
     CleanUp
 
-elif [[ "$1" =~ ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
+elif [[ "$imageOuCode" =~ ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
 
     #Store selected background color.
-    BgColor="$1"
+    BgColor="$imageOuCode"
 
     CreateDirs
     ExtractRes
@@ -202,9 +216,6 @@ elif [[ "$1" =~ ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
 
     # Compile and move gresoure.
     CompileMoveRes
-
-    # Check if everything was sucessfull.
-    Check
 
     # Remove temporary files and exit.
     CleanUp
