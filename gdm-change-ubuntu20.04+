@@ -70,8 +70,8 @@ if mv "$gdm3Resource~" "$gdm3Resource"; then
 	    service gdm restart
 	else
 	    echo 'Redémarrez le service GDM pour appliquer le changement.'
-	    exit 0
 	fi
+	exit 0
 fi
 }
 
@@ -142,7 +142,7 @@ then
 	elif command -v zenity > /dev/null;then outilDialogue="zenity";fi
 	if [[ "$outilDialogue" != "" ]]
 	then
-		imageOuCode=`$outilDialogue --file-selection --title "Séléctionnez une image" --file-filter "Image Files | *.jpg *.png"`
+		imageOuCode=$($outilDialogue --file-selection --title "Séléctionnez une image" --file-filter "Image Files | *.jpg *.png")
 	fi
 fi
 

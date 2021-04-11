@@ -13,7 +13,7 @@ if [ "$1" = "--restore" ]; then
 fi
 
 # Get the image selected by user from yad based GUI.
-usrInput=`yad --file --center --width=900 --height=450 --title "Séléctionnez une image" --add-preview --file-filter "Image Files | *.jpg *.png" 2> /dev/null`
+usrInput=$(yad --file --center --width=900 --height=450 --title "Séléctionnez une image" --add-preview --file-filter "Image Files | *.jpg *.png" 2> /dev/null)
 
 # Verify if yad is installed
 if [ "$?" -eq 127 ]; then
