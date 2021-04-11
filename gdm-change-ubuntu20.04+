@@ -22,7 +22,7 @@ EOF
 
 # Check if script is run by root.
 if [ "$(id -u)" -ne 0 ] ; then
-    echo 'Ce script doit être exécuté en tant que root ou avec la commande sudo.'
+    echo -e 'Ce script doit être exécuté en tant que root ou avec la commande sudo.\n'
     usage
     exit 1
 fi
@@ -102,14 +102,16 @@ done
 
 # Compile resources into a gresource binary file.
 CompileMoveRes() {
+
 glib-compile-resources --sourcedir=$workDir/theme/ $workDir/theme/"$gdm3xml"
+
 # Move the generated binary file to the gnome-shell folder.
 
 if mv $workDir/theme/gnome-shell-theme.gresource $gdm3Resource; then
 # Solve a permission change issue (thanks to @huepf from github).
     chmod 644 "$gdm3Resource"
     echo "L'arrière-plan du GDM a changé avec succès."
-    read -rp 'Voulez-vous relancer le GDM pour appliquer le changement ? (o/n) :' -n 1
+    read -rp 'Voulez-vous relancer le GDM pour appliquer le changement (toutes applications sera stopées) ? (o/n) :' -n 1
     echo
     # If change was successful apply ask for gdm restart.
     if [[ "$REPLY" =~ ^[oO]$ ]]; then
@@ -136,15 +138,15 @@ imageOuCode="$1"
 if [ -z "$imageOuCode" ]
 then
 	outilDialogue=""
-	if command -v yad;then outilDialogue="yad";
-	elif command -v zenity;then outilDialogue="zenity";fi
+	if command -v yad > /dev/null;then outilDialogue="yad";
+	elif command -v zenity > /dev/null;then outilDialogue="zenity";fi
 	if [[ "$outilDialogue" != "" ]]
 	then
 		imageOuCode=`$outilDialogue --file-selection --title "Séléctionnez une image" --file-filter "Image Files | *.jpg *.png"`
 	fi
 fi
 
-echo "Le chemin de l'image ou le code retenu est $imageOuCode"
+echo "Le chemin de l'image ou le code retenu est : \"$imageOuCode\""
 
 # Test if argument is an image file.
 if [[ $(file --mime-type -b "$imageOuCode") == image/*g ]]; then
@@ -216,6 +218,7 @@ else
 
     # If no file was submited or file submited isn't an image,
     # show this message.
+    echo
     echo "L'image n'a pas été trouvée ou vous avez renseigné un mauvais code hexadécimal"
     echo "S'il vous plaît, donnez un chemin vers une image .jpg ou .png ou un code hexadécimal valide"
 fi
