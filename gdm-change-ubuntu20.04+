@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Autor: Thiago Silva, Gabriel Theuws
+# Authors: Gabriel Theuws
 # Translate : Gabriel Theuws
 # Contact: thiagos.dasilva@gmail.com
 # Contact: gaby.theuws@gmail.com
@@ -9,7 +9,7 @@
 
 usage () {
 cat << EOF
-Utilisation :
+Utilisation :
   sudo $0 [OPTION]
 
 OPTION :
@@ -111,7 +111,8 @@ if mv $workDir/theme/gnome-shell-theme.gresource $gdm3Resource; then
 # Solve a permission change issue (thanks to @huepf from github).
     chmod 644 "$gdm3Resource"
     echo "L'arrière-plan du GDM a changé avec succès."
-    read -rp 'Voulez-vous relancer le GDM pour appliquer le changement (toutes applications sera stopées) ? (o/n) :' -n 1
+    read -rp 'Voulez-vous relancer la session pour voir votre nouvel arrière-plan ?
+(TOUTES les applications seront stopées)  (o/n) :' -n 1
     echo
     # If change was successful apply ask for gdm restart.
     if [[ "$REPLY" =~ ^[oO]$ ]]; then
@@ -163,7 +164,7 @@ if [[ $(file --mime-type -b "$imageOuCode") == image/*g ]]; then
     # Copy selected image to the resources directory.
     cp "$gdmBgImg" "$workDir"/theme
 
-    # Change gdm background to the image you submited.
+    # Change gdm background to the image you submited. 
     oldBg="#lockDialogGroup \{.*?\}"
     newBg="#lockDialogGroup {
 	background: url('resource:\/\/\/org\/gnome\/shell\/theme\/$imgFile');
