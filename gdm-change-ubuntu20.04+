@@ -164,7 +164,7 @@ if [[ $(file --mime-type -b "$imageOuCode") == image/*g ]]; then
     # Copy selected image to the resources directory.
     cp "$gdmBgImg" "$workDir"/theme
 
-    # Change gdm background to the image you submited. 
+    # Change gdm background to the image you submited.
     oldBg="#lockDialogGroup \{.*?\}"
     newBg="#lockDialogGroup {
 	background: url('resource:\/\/\/org\/gnome\/shell\/theme\/$imgFile');
