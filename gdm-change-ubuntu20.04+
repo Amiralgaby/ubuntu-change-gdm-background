@@ -13,8 +13,11 @@ Utilisation :
   sudo $0 [OPTION]
 
 OPTION :
-  /chemin/du/fichier.[jpg|png]			-  Indiquer le chemin vers un fichier
-  \#votreCouleurEnHexadécimal			-  Indiquer un code en hexadécimal comme #44ff22 (couleur unie)
+  /chemin/du/fichier.[jpg|png]  -   Chemin vers une image
+  \#votreCouleurEnHexadécimal   -   Code en hexadécimal comme #44ff22 (couleur unie)
+  --cache-filigrane             -   Cache le logo Ubuntu sur l'écran de connexion
+                                    et par la même occasion celui du boot
+  --restore                     -   Restaure l'ancien thème
 EOF
 }
 
@@ -33,6 +36,15 @@ if ! [[ "$distro" =~ (focal|groovy) ]]; then
     echo "Désolé, ce script ne fonctionne qu'avec des distros focal ou groovy."
     exit 1
 fi
+
+# Check si l'option --cache-filigrane à été donnée
+for arg in $@; do
+    if [ $arg == "--cache-filigrane" ]; then
+        logoPath="/usr/share/plymouth/ubuntu-logo.png"
+        [ -f $logoPath ] && mv $logoPath "$logoPath.bak"
+        [ $# -eq 1 ] && shift
+    fi
+done
 
 # Check if glib 2.0 development libraries are installed.
 if [ ! -x "$(command -v glib-compile-resources)" ]; then
