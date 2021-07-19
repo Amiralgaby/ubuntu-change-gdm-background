@@ -6,10 +6,10 @@
 
 # Add the restore option in order to restore gdm original theme.
 if [ "$1" = "--restore" ]; then
-  cat /usr/share/gnome-shell/theme/gdm3.css~ > /usr/share/gnome-shell/theme/gdm3.css
-  echo "L'arrière-plan de la connexion a été restauré avec succès sur son thème d'origine."
-  echo "Redémarrez GNOME afin d'appliquer les changements"
-  exit 0
+    cat /usr/share/gnome-shell/theme/gdm3.css~ > /usr/share/gnome-shell/theme/gdm3.css
+    echo "L'arrière-plan de la connexion a été restauré avec succès sur son thème d'origine."
+    echo "Redémarrez GNOME afin d'appliquer les changements"
+    exit 0
 fi
 
 # Get the image selected by user from yad based GUI.
@@ -17,10 +17,10 @@ usrInput=$(yad --file --center --width=900 --height=450 --title "Séléctionnez 
 
 # Verify if yad is installed
 if [ "$?" -eq 127 ]; then
-     echo "Le paquet yad n'est pas installé"
-     echo "Il est utile pour des interfaces graphiques qui vous simplifirons la vie"
-     echo "Utiliser la commande : sudo apt install yad"
-     exit 1
+    echo "Le paquet yad n'est pas installé"
+    echo "Il est utile pour des interfaces graphiques qui vous simplifirons la vie"
+    echo "Utiliser la commande : sudo apt install yad"
+    exit 1
 fi
 
 # Check if there is a user input.
@@ -40,10 +40,10 @@ if [[ $(file --mime-type -b "$usrInput") == image/*g ]]; then
 
     # Ubuntu GDM login background configuration file path.
     cssPath=/usr/share/gnome-shell/theme/gdm3.css
-    
+
     # Test if there is a backup of the original gdm css file and create a backup,
-    # if there isn't one. 
-    [ ! -f "$cssPath"~ ] && cp "$cssPath" "$cssPath"~ 
+    # if there isn't one.
+    [ ! -f "$cssPath"~ ] && cp "$cssPath" "$cssPath"~
 
     # Change the login background image to the one you submited.
     ex $cssPath << EOF
@@ -54,21 +54,21 @@ EOF
 
     # Test if login screen background was changed.
     if grep -wq "$bgImgPath" "$cssPath"; then
-	yad --title "Message d'information" --center \
-	    --width=300 --height=100 --borders=20 \
-	    --text="L'image de l'écran de choix de session à été changée avec succès" \
-	    --button=gtk-ok
-	yad --title "Redémarrer le gestionnaire de session" --center \
-	    --width=300 --height=100 --borders=20 \
-	    --text="Souhaitez-vous redémarrer gdm afin que les modifications soit prise en compte ?" \
-	    --button=gtk-yes:1 --button=gtk-no:2
-	
-	if [ $? == 1 ]; then
-	    service gdm restart
-	elif [ $? == 2 ]; then
-		# On ne souhaite pas embêter l'utilisateur pour son choix donc on n'utilise plus yad.
-		echo "\[033;1m Les changements ne seront pas appliqués jusqu'au redémarrage de gdm"
-		echo "Via la commande : service gdm restart"
-	fi
+        yad --title "Message d'information" --center \
+            --width=300 --height=100 --borders=20 \
+            --text="L'image de l'écran de choix de session à été changée avec succès" \
+            --button=gtk-ok
+        yad --title "Redémarrer le gestionnaire de session" --center \
+            --width=300 --height=100 --borders=20 \
+            --text="Souhaitez-vous redémarrer gdm afin que les modifications soit prise en compte ?" \
+            --button=gtk-yes:1 --button=gtk-no:2
+
+        if [ $? == 1 ]; then
+            service gdm restart
+        elif [ $? == 2 ]; then
+            # On ne souhaite pas embêter l'utilisateur pour son choix donc on n'utilise plus yad.
+            echo "\[033;1m Les changements ne seront pas appliqués jusqu'au redémarrage de gdm"
+            echo "Via la commande : service gdm restart"
+        fi
     fi
 fi
