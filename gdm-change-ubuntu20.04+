@@ -10,11 +10,13 @@
 usage () {
     cat << EOF
 Utilisation :
-  sudo $0 [OPTION]
+  sudo $0 [CONTENT] [OPTIONS]
 
-OPTION :
+CONTENT :
   /chemin/du/fichier.[jpg|png]  -   Chemin vers une image
-  \#votreCouleurEnHexadécimal   -   Code en hexadécimal comme #44ff22 (couleur unie)
+  Couleur en hexadécimal        -   Code en hexadécimal comme "44ff22" (couleur unie)
+
+OPTIONS :
   --cache-filigrane             -   Cache le logo Ubuntu sur l'écran de connexion
                                     et par la même occasion celui du boot
   --restore                     -   Restaure l'ancien thème
@@ -30,16 +32,17 @@ if [ "$(id -u)" -ne 0 ] ; then
     exit 1
 fi
 
+[ -f /etc/os-release ] && . /etc/os-release
+
 # Check what linux distro is being used.
-distro="$(lsb_release -c | cut -f 2)"
-if ! [[ "$distro" =~ (focal|groovy) ]]; then
+if ! [[ "$VERSION_CODENAME" =~ (focal|groovy) ]]; then
     echo "Désolé, ce script ne fonctionne qu'avec des distros focal ou groovy."
     exit 1
 fi
 
 # Check si l'option --cache-filigrane à été donnée
-for arg in $@; do
-    if [ $arg == "--cache-filigrane" ]; then
+for arg in "$@"; do
+    if [ "$arg" == "--cache-filigrane" ]; then
         logoPath="/usr/share/plymouth/ubuntu-logo.png"
         [ -f $logoPath ] && mv $logoPath "$logoPath.bak"
         [ $# -eq 1 ] && shift
@@ -61,9 +64,10 @@ if [ ! -x "$(command -v glib-compile-resources)" ]; then
 fi
 
 # Assign the default gdm theme file path.
-if [ "$(lsb_release -i | awk '{print $3}')" == 'Ubuntu' ]; then
+
+if [ "$NAME" == 'Ubuntu' ]; then
     gdm3Resource=/usr/share/gnome-shell/theme/Yaru/gnome-shell-theme.gresource
-elif [ "$(lsb_release -i | awk '{print $3}')" == 'Pop' ]; then
+elif [ "$NAME" == 'Pop' ]; then
     gdm3Resource=/usr/share/gnome-shell/theme/Pop/gnome-shell-theme.gresource
 fi
 
@@ -129,9 +133,6 @@ CompileMoveRes() {
         # If change was successful apply ask for gdm restart.
         if [[ "$REPLY" =~ ^[oO]$ ]]; then
             service gdm restart
-        else
-            echo "Le changement ne sera appliqué qu'après le redémarrage de gdm"
-            echo
         fi
     else
         # If something went wrong, restore backup file.
@@ -196,10 +197,7 @@ if [[ $(file --mime-type -b "$imageOuCode") == image/*g ]]; then
     # Compile and move gresource.
     CompileMoveRes
 
-elif [[ "$imageOuCode" =~ ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
-
-    #Store selected background color.
-    BgColor="$imageOuCode"
+elif [[ "$imageOuCode" =~ ^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
 
     CreateDirs
     ExtractRes
@@ -207,7 +205,7 @@ elif [[ "$imageOuCode" =~ ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
     # Change gdm background to the color you submited.
     oldBg="#lockDialogGroup \{.*?\}"
     newBg="#lockDialogGroup {
-        background: $BgColor;
+        background: #$imageOuCode;
     background-size: cover; }"
     perl -i -0777 -pe "s/$oldBg/$newBg/s" "$workDir"/theme/gdm3.css
 
