@@ -31,12 +31,12 @@ if [[ $(file --mime-type -b "$usrInput") == image/*g ]]; then
 
     # Get the full path of submited image.
     imgPath=$(realpath "$usrInput")
-    imgName=$(basename "$usrInput")
 
     # Save pictures to /usr/share/gdm-backgrounds.
     [ ! -d /usr/share/gdm/saved-pictures ] && mkdir /usr/share/gdm/saved-pictures
     cp "$imgPath" /usr/share/gdm/saved-pictures
-    bgImgPath=/usr/share/gdm/saved-pictures/"$imgName"
+    bgImgPath=/usr/share/gdm/saved-pictures/"${usrInput##*/}"
+
 
     # Ubuntu GDM login background configuration file path.
     cssPath=/usr/share/gnome-shell/theme/gdm3.css

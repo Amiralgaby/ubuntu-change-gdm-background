@@ -165,7 +165,7 @@ if [[ $(file --mime-type -b "$imageOuCode") == image/*g ]]; then
 
     # Define image variables.
     gdmBgImg=$(realpath "$imageOuCode")
-    imgFile=$(basename "$gdmBgImg")
+    imgFile="${gdmBgImg##*/}"
 
     # Call procedures to create directories and extract resources to them.
     CreateDirs
