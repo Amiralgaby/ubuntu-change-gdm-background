@@ -9,8 +9,8 @@
 
 usage () {
     cat << EOF
-Utilisation :
-  sudo $0 [OPTIONS]
+Utilisation avec privilège administrateur:
+  $0 [OPTIONS]
 
 OPTIONS :
   --cache-filigrane             -   Cache le logo Ubuntu sur l'écran de connexion
@@ -37,16 +37,13 @@ if ! [[ "$VERSION_CODENAME" =~ (focal|groovy) ]]; then
 fi
 
 # Check if glib 2.0 development libraries are installed.
-if [ ! -x "$(command -v glib-compile-resources)" ]; then
-    echo 'Des bibliothèques glib 2.0 supplémentaires doivent être installées.' >&2
+command -v glib-compile-resources >/dev/null 2>&1 || { 
+    echo "La commande glib-compile-resources n'a pas été trouvée" >&2
     echo "Ce script ne peut pas fonctionner sans les bibliothèques nécessaires" >&2
-    echo "Besoin de du paquet \"glib-compile-resources\"" >&2
-    echo "Vous n'avez peut-être pas GNOME comme gestionnaire" >&2
     exit 1
-fi
+}
 
 # Assign the default gdm theme file path.
-
 if [ "$NAME" == 'Ubuntu' ]; then
     gdm3Resource=/usr/share/gnome-shell/theme/Yaru/gnome-shell-theme.gresource
 elif [ "$NAME" == 'Pop' ]; then
@@ -69,7 +66,7 @@ restore () {
 [ "$1" == "--restore" ] && restore
 
 #Define main variables.
-gdm3xml=$(basename "$gdm3Resource").xml
+gdm3xml=${gdm3Resource##*/}.xml
 workDir="/tmp/gdm3-theme"
 
 # Create directories from resource list.
@@ -115,50 +112,38 @@ CompileMoveRes() {
 
 runApp() {
 
-# Test if argument is an image file.
-if [[ $(file --mime-type -b "$1") == image/*g ]]; then
+# Define image variables.
+imgFile="${1##*/}"
 
-    # Define image variables.
-    gdmBgImg=$(realpath "$1")
-    imgFile=$(basename "$gdmBgImg")
+# Call procedures to create directories and extract resources to them.
+ExtractRes
 
-    # Call procedures to create directories and extract resources to them.
-    CreateDirs
-
-    ExtractRes
-
-    # Copy selected image to the resources directory.
-    cp "$gdmBgImg" "$workDir"/theme
-
-    # Change gdm background to the image you submited.
-    oldBg="#lockDialogGroup \{.*?\}"
-    newBg="#lockDialogGroup {
-        background: url('resource:\/\/\/org\/gnome\/shell\/theme\/$imgFile');
+# Change gdm background to the image you submited.
+oldBg="#lockDialogGroup \{.*?\}"
+newBg="#lockDialogGroup {
+    background: url('resource:\/\/\/org\/gnome\/shell\/theme\/$imgFile');
     background-size: cover; }"
-    perl -i -0777 -pe "s/$oldBg/$newBg/s" "$workDir"/theme/gdm3.css
+perl -i -0777 -pe "s/$oldBg/$newBg/s" "$workDir"/theme/gdm3.css
 
-    # Generate gresource xml file.
-    echo '<?xml version="1.0" encoding="UTF-8"?>
+# Generate gresource xml file.
+echo '<?xml version="1.0" encoding="UTF-8"?>
 <gresources>
     <gresource prefix="/org/gnome/shell/theme">' > "$workDir"/theme/"$gdm3xml"
-    for file in $(gresource list "$gdm3Resource~"); do
-        echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
-            >> "$workDir"/theme/"$gdm3xml"
-    done
-    echo "        <file>$imgFile</file>" >> "$workDir"/theme/"$gdm3xml"
-    echo '    </gresource>
-    </gresources>' >> "$workDir"/theme/"$gdm3xml"
+for file in $(gresource list "$gdm3Resource~"); do
+    echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
+        >> "$workDir"/theme/"$gdm3xml"
+done
+echo "        <file>$imgFile</file>" >> "$workDir"/theme/"$gdm3xml"
+echo '    </gresource>
+</gresources>' >> "$workDir"/theme/"$gdm3xml"
 
-    # Compile and move gresource.
-    CompileMoveRes
-
-else
-    echo -e "\nL'image n'a pas été trouvée ou vous avez renseigné un mauvais code hexadécimal" >&2
-    echo "S'il vous plaît, donnez un chemin vers une image .jpg ou .png ou un code hexadécimal valide" >&2
-fi
+# Compile and move gresource.
+CompileMoveRes
 }
 
-PATH_TO_IMG="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"/image
+CreateDirs
+
+PATH_TO_IMG="$workDir"/theme/image
 
 if nc -zw1 picsum.photos 443
 then 
@@ -166,6 +151,7 @@ then
     wget --no-verbose https://picsum.photos/1600/900 -6 -O "$PATH_TO_IMG"
 else
     echo "Problème pour se connecter" >&2
+    exit 1
 fi
 
 [ -f "$PATH_TO_IMG" ] && runApp "$PATH_TO_IMG" || echo "Le fichier \"$PATH_TO_IMG\" n'a pas été trouvé"
