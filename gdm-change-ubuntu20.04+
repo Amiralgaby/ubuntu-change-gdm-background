@@ -32,7 +32,7 @@ if [ "$(id -u)" -ne 0 ] ; then
 fi
 
 # on suppose vrai l'existence du fichier
-. /etc/os-release && exit 1
+. /etc/os-release || exit 1
 
 # Check si l'option --cache-filigrane à été donnée
 for arg in "$@"; do
