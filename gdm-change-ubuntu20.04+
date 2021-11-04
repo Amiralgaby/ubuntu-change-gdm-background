@@ -27,7 +27,7 @@ EOF
 
 # Check if script is run by root.
 if [ "$(id -u)" -ne 0 ] ; then
-    echo -e 'Ce script doit être exécuté en tant que root ou avec la commande sudo.\n'
+    echo -e 'Ce script doit être exécuté en tant que root ou avec la commande sudo.\n' >&2
     usage
     exit 1
 fi
@@ -36,7 +36,7 @@ fi
 
 # Check what linux distro is being used.
 if ! [[ "$VERSION_CODENAME" =~ (focal|groovy) ]]; then
-    echo "Désolé, ce script ne fonctionne qu'avec des distros focal ou groovy."
+    echo "Désolé, ce script ne fonctionne qu'avec des distros focal ou groovy." >&2
     exit 1
 fi
 
@@ -50,18 +50,11 @@ for arg in "$@"; do
 done
 
 # Check if glib 2.0 development libraries are installed.
-if [ ! -x "$(command -v glib-compile-resources)" ]; then
-    echo 'Des bibliothèques glib 2.0 supplémentaires doivent être installées.'
-    read -rp 'Tapez o ou O pour continuer. Toute autre touche pour sortir : ' -n 1
-    if [[ "$REPLY" =~ ^[oO]$ ]]; then
-        apt install libglib2.0-dev-bin
-    else
-        echo "Ce script ne peut pas fonctionner sans les bibliothèques nécessaires"
-        echo "Abandon"
-        echo
-        exit 1
-    fi
-fi
+command -v glib-compile-resources >/dev/null 2>&1 || { 
+    echo "La commande glib-compile-resources n'a pas été trouvée" >&2
+    echo "Ce script ne peut pas fonctionner sans les bibliothèques nécessaires" >&2
+    exit 1
+}
 
 # Assign the default gdm theme file path.
 
@@ -76,17 +69,9 @@ fi
 
 # Restore backup function.
 restore () {
-
     if mv "$gdm3Resource~" "$gdm3Resource"; then
         chmod 644 "$gdm3Resource"
-        echo 'Le fond GDM a été restauré avec succès.'
-        read -rp 'Voulez-vous relancer le GDM pour appliquer le changement ? (o/n) :' -n 1
-        echo
-        if [[ "$REPLY" =~ ^[oO]$ ]]; then
-            service gdm restart
-        else
-            echo 'Redémarrez le service GDM pour appliquer le changement.'
-        fi
+        echo "L'arrière-plan a été restauré avec succès."
         exit 0
     fi
 }
@@ -95,9 +80,9 @@ restore () {
 [ "$1" == "--restore" ] && restore
 
 #Define main variables.
-gdm3xml=$(basename "$gdm3Resource").xml
+gdm3xml="${gdm3Resource##*/}".xml
 workDir="/tmp/gdm3-theme"
-
+pathXML="$workDir"/theme/"$gdm3xml"
 # Create directories from resource list.
 CreateDirs() {
     for resource in $(gresource list "$gdm3Resource~"); do
@@ -119,7 +104,7 @@ ExtractRes() {
 # Compile resources into a gresource binary file.
 CompileMoveRes() {
 
-    glib-compile-resources --sourcedir=$workDir/theme/ $workDir/theme/"$gdm3xml"
+    glib-compile-resources --sourcedir=$workDir/theme/ "$pathXML"
 
     # Move the generated binary file to the gnome-shell folder.
 
@@ -131,12 +116,12 @@ CompileMoveRes() {
         (TOUTES les applications seront stopées)  (o/n) :' -n 1
         echo
         # If change was successful apply ask for gdm restart.
-        if [[ "$REPLY" =~ ^[oO]$ ]]; then
+        if [[ "$REPLY" =~ [oO] ]]; then
             service gdm restart
         fi
     else
         # If something went wrong, restore backup file.
-        echo "quelque chose s'est mal passé."
+        echo "quelque chose s'est mal passé." >&2
         restore
         echo "Aucun changement n'a été appliqué"
     fi
@@ -160,41 +145,43 @@ then
     fi
 fi
 
+# Génére les fichiers pour le thème
+GenerateThemeFiles() {
+    
+    oldBg="#lockDialogGroup \{.*?\}"
+    perl -i -0777 -pe "s/$oldBg/$1/s" "$workDir"/theme/gdm3.css
+
+    echo '<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/org/gnome/shell/theme">' > "$pathXML"
+    for file in $(gresource list "$gdm3Resource~"); do
+        echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
+            >> "$pathXML"
+    done
+    [ -n "$2" ] && echo "        <file>$2</file>" >> "$pathXML"
+    echo '    </gresource>
+    </gresources>' >> "$pathXML"
+}
+
 # Test if argument is an image file.
 if [[ $(file --mime-type -b "$imageOuCode") == image/*g ]]; then
-
-    # Define image variables.
-    gdmBgImg=$(realpath "$imageOuCode")
-    imgFile="${gdmBgImg##*/}"
-
-    # Call procedures to create directories and extract resources to them.
+    
     CreateDirs
-
     ExtractRes
 
+    gdmBgImg="$(realpath "$imageOuCode")"
+    
     # Copy selected image to the resources directory.
     cp "$gdmBgImg" "$workDir"/theme
 
+    imgFile="${gdmBgImg##*/}"
+
     # Change gdm background to the image you submited.
-    oldBg="#lockDialogGroup \{.*?\}"
     newBg="#lockDialogGroup {
         background: url('resource:\/\/\/org\/gnome\/shell\/theme\/$imgFile');
     background-size: cover; }"
-    perl -i -0777 -pe "s/$oldBg/$newBg/s" "$workDir"/theme/gdm3.css
-
-    # Generate gresource xml file.
-    echo '<?xml version="1.0" encoding="UTF-8"?>
-<gresources>
-    <gresource prefix="/org/gnome/shell/theme">' > "$workDir"/theme/"$gdm3xml"
-    for file in $(gresource list "$gdm3Resource~"); do
-        echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
-            >> "$workDir"/theme/"$gdm3xml"
-    done
-    echo "        <file>$imgFile</file>" >> "$workDir"/theme/"$gdm3xml"
-    echo '    </gresource>
-    </gresources>' >> "$workDir"/theme/"$gdm3xml"
-
-    # Compile and move gresource.
+    
+    GenerateThemeFiles "$newBg" "$imgFile"
     CompileMoveRes
 
 elif [[ "$imageOuCode" =~ ^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
@@ -203,31 +190,16 @@ elif [[ "$imageOuCode" =~ ^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
     ExtractRes
 
     # Change gdm background to the color you submited.
-    oldBg="#lockDialogGroup \{.*?\}"
     newBg="#lockDialogGroup {
         background: #$imageOuCode;
     background-size: cover; }"
-    perl -i -0777 -pe "s/$oldBg/$newBg/s" "$workDir"/theme/gdm3.css
 
-    # Generate the gresource xml file.
-    echo '<?xml version="1.0" encoding="UTF-8"?>
-<gresources>
-    <gresource prefix="/org/gnome/shell/theme">' > "$workDir"/theme/"$gdm3xml"
-    for file in $(gresource list "$gdm3Resource~"); do
-        echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
-            >> "$workDir"/theme/"$gdm3xml"
-    done
-    echo '    </gresource>
-    </gresources>' >> "$workDir"/theme/"$gdm3xml"
-
-    # Compile and move gresoure.
+    GenerateThemeFiles "$newBg"
     CompileMoveRes
 
 else
-
-    # If no file was submited or file submited isn't an image,
-    # show this message.
+    # Si ce ni un fichier valide, ni un code héxadécimal, afficher ce message
     echo
-    echo "L'image n'a pas été trouvée ou vous avez renseigné un mauvais code hexadécimal"
-    echo "S'il vous plaît, donnez un chemin vers une image .jpg ou .png ou un code hexadécimal valide"
+    echo "L'image n'a pas été trouvée ou vous avez renseigné un mauvais code hexadécimal" >&2
+    echo "S'il vous plaît, donnez un chemin vers une image .jpg ou .png ou un code hexadécimal valide" >&2
 fi
