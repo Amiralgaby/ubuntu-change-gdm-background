@@ -9,8 +9,8 @@
 
 usage () {
     cat << EOF
-Utilisation :
-  sudo $0 [CONTENT] [OPTIONS]
+Utilisation avec privilèges administrateur :
+  $0 [CONTENT] [OPTIONS]
 
 CONTENT :
   /chemin/du/fichier.[jpg|png]  -   Chemin vers une image
@@ -32,13 +32,8 @@ if [ "$(id -u)" -ne 0 ] ; then
     exit 1
 fi
 
-[ -f /etc/os-release ] && . /etc/os-release
-
-# Check what linux distro is being used.
-if ! [[ "$VERSION_CODENAME" =~ (focal|groovy) ]]; then
-    echo "Désolé, ce script ne fonctionne qu'avec des distros focal ou groovy." >&2
-    exit 1
-fi
+# on suppose vrai l'existence du fichier
+. /etc/os-release && exit 1
 
 # Check si l'option --cache-filigrane à été donnée
 for arg in "$@"; do
@@ -142,6 +137,10 @@ then
     if [[ "$outilDialogue" != "" ]]
     then
         imageOuCode=$($outilDialogue --file-selection --title "Séléctionnez une image" --file-filter "Image Files | *.jpg *.png")
+    else
+        echo "Vous n'avez ni yad, ni zenity d'installé"
+        usage
+        exit 0
     fi
 fi
 
@@ -199,7 +198,6 @@ elif [[ "$imageOuCode" =~ ^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$ ]]; then
 
 else
     # Si ce ni un fichier valide, ni un code héxadécimal, afficher ce message
-    echo
     echo "L'image n'a pas été trouvée ou vous avez renseigné un mauvais code hexadécimal" >&2
     echo "S'il vous plaît, donnez un chemin vers une image .jpg ou .png ou un code hexadécimal valide" >&2
 fi
