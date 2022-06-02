@@ -146,19 +146,27 @@ fi
 # Génére les fichiers pour le thème
 GenerateThemeFiles() {
     
-    oldBg="#lockDialogGroup \{.*?\}"
+    oldBg='#lockDialogGroup \{.*?\}'
     perl -i -0777 -pe "s/$oldBg/$1/s" "$workDir"/theme/gdm3.css
-
-    echo '<?xml version="1.0" encoding="UTF-8"?>
-<gresources>
-    <gresource prefix="/org/gnome/shell/theme">' > "$pathXML"
+    
+    filesXML=""
     for file in $(gresource list "$gdm3Resource~"); do
-        echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
-            >> "$pathXML"
+        filesXML="$filesXML
+        	<file>${file#\/org\/gnome/shell\/theme\/}</file>"
     done
-    [ -n "$2" ] && echo "        <file>$2</file>" >> "$pathXML"
-    echo '    </gresource>
-    </gresources>' >> "$pathXML"
+    
+    [ -n "$2" ] && filesXML="$filesXML
+    		<file>$2</file>"
+
+cat <<EOF > "$pathXML"
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/org/gnome/shell/theme">
+    	$filesXML
+    </gresource>
+</gresources>
+EOF
+
 }
 
 # Test if argument is an image file.
