@@ -135,7 +135,13 @@ then
     elif command -v zenity > /dev/null;then outilDialogue="zenity";fi
     if [[ "$outilDialogue" != "" ]]
     then
-        imageOuCode=$($outilDialogue --file-selection --title "Séléctionnez une image" --file-filter "Image Files | *.jpg *.png")
+	    comm='zenity --file-selection --title "Séléctionnez une image" --file-filter "Fichiers Images (*.jpg,*.png) | *.jpg *.png"'
+	    if [ -n "$SUDO_USER" ]
+	    then
+		    imageOuCode="$(su "$SUDO_USER" -c "$comm")" # permet d'avoir une meilleure expérience avec les dossiers appartenant à l'user
+	    else
+		    imageOuCode="$($comm)"
+	    fi
     else
         echo "Vous n'avez ni yad, ni zenity d'installé"
         usage
