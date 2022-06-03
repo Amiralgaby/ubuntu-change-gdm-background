@@ -125,17 +125,25 @@ newBg="#lockDialogGroup {
     background-size: cover; }"
 perl -i -0777 -pe "s/$oldBg/$newBg/s" "$workDir"/theme/gdm3.css
 
-# Generate gresource xml file.
-echo '<?xml version="1.0" encoding="UTF-8"?>
-<gresources>
-    <gresource prefix="/org/gnome/shell/theme">' > "$workDir"/theme/"$gdm3xml"
+filesXML=""
 for file in $(gresource list "$gdm3Resource~"); do
-    echo "        <file>${file#\/org\/gnome/shell\/theme\/}</file>" \
-        >> "$workDir"/theme/"$gdm3xml"
+	filesXML="$filesXML
+		<file>${file#\/org\/gnome/shell\/theme\/}</file>"
 done
-echo "        <file>$imgFile</file>" >> "$workDir"/theme/"$gdm3xml"
-echo '    </gresource>
-</gresources>' >> "$workDir"/theme/"$gdm3xml"
+
+filesXML="$filesXML
+		<file>$imgFile</file>"
+
+pathXML=""$workDir"/theme/"$gdm3xml""
+# Generate gresource xml file.
+cat <<EOF > "$pathXML"
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/org/gnome/shell/theme">
+    	$filesXML
+    </gresource>
+</gresources>
+EOF
 
 # Compile and move gresource.
 CompileMoveRes
