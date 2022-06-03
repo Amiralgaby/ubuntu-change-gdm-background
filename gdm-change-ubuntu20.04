@@ -135,7 +135,8 @@ then
     elif command -v zenity > /dev/null;then outilDialogue="zenity";fi
     if [[ "$outilDialogue" != "" ]]
     then
-	    comm='zenity --file-selection --title "Séléctionnez une image" --file-filter "Fichiers Images (*.jpg,*.png) | *.jpg *.png"'
+	    comm="$outilDialogue"' --file-selection --title "Séléctionnez une image" --file-filter "Fichiers Images (*.jpg,*.png) | *.jpg *.png"'
+	    [ "$outilDialogue" == "yad" ] && comm="$comm --width=\"800\" --height=\"600\" --add-preview"
 	    if [ -n "$SUDO_USER" ]
 	    then
 		    imageOuCode="$(su "$SUDO_USER" -c "$comm")" # permet d'avoir une meilleure expérience avec les dossiers appartenant à l'user
