@@ -1,4 +1,7 @@
 # ubuntu-change-gdm-background
+
+> :warning: **Pour les versions d'Ubuntu supérieure à la version 24.04, ce script ne fonctionne pas, utilisez [gdm-settings](https://doc.ubuntu-fr.org/gdm-settings)**
+
 Il s'agit d'un script qui change l'arrière-plan du gestionnaire de sessions GDM.
 Vous pourrez enfin vous passer du célèbre thème de l'aubergine (violet uni).
 
